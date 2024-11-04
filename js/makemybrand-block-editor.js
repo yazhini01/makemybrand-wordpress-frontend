@@ -6,10 +6,10 @@
 
 	wp.domReady(() => {
 		registerBlockType("makemybrand/infographic", {
-			title: "Infographic", // Add a title for the block
-			description: "A block for displaying infographics.", // Optional description
-			icon: "format-image", // Optional icon, use WordPress Dashicons or SVG
-			category: "common", // Category for the block
+			title: "Infographic",
+			description: "A block for displaying infographics.",
+			icon: "format-image",
+			category: "common",
 
 			attributes: {
 				imageUrl: { type: "string", default: "" },
@@ -26,7 +26,6 @@
 					Button,
 					{
 						onClick: editThis,
-						// className: "components-button",
 					},
 					"Edit Infographic"
 				);
@@ -34,7 +33,7 @@
 				const content =
 					props.attributes.imageUrl &&
 					wp.element.createElement("img", {
-						src: props.attributes.imageUrl,
+						src: props.attributes.imageUrl + "?t=" + new Date().getTime(),
 						alt: "Infographic",
 						style: { maxWidth: "100%" },
 					});
