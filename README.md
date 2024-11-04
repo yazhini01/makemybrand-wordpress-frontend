@@ -2,7 +2,7 @@ React WordPress Frontend
 
 ## Overview
 
-This project provides a React-based frontend for the MakeMyBrand Infographics plugin, allowing users to generate and manage infographic images directly within their WordPress posts.
+This project provides a React-based frontend for the MakeMyBrand Infographics Generator plugin, allowing users to generate and manage infographic images directly within their WordPress posts.
 
 ## Prerequisites
 
