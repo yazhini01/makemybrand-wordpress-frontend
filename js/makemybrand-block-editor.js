@@ -1,5 +1,13 @@
 /*
- * Plugin Name: Infographic Generator by MakeMyBrand.AI
+ * Plugin Name: MakeMyBrand
+ * Plugin URI: https://makemybrand.ai/
+ * Description: Adds an infographic to new posts
+ * Version: 1.03
+ * Author: Make My Brand
+ * Author URI: https://makemybrand.ai
+ * License: GPLv2
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ *
  * Copyright (C) 2024 MakeMyBrand.AI
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +27,7 @@
 (function (wp) {
 	const { registerBlockType } = wp.blocks;
 	const { BlockControls } = wp.blockEditor;
-	const { Button } = wp.components;
+	const { Button, ResizableBox } = wp.components;
 	const { useSelect } = wp.data;
 
 	wp.domReady(() => {
@@ -34,10 +42,11 @@
 				designId: { type: "string", default: "" },
 			},
 			edit: function (props) {
+				const { imageUrl, width, aspectRatio } = props.attributes;
 				const block = useSelect((select) => select("core/block-editor").getBlock(props.clientId), [props.clientId]);
 
 				const editThis = function () {
-					window.open("https://makemybrand.ai/design/" + block.attributes.designId, "_blank");
+					window.open("https://app.makemybrand.ai/design/" + block.attributes.designId, "_blank");
 				};
 
 				const editButton = wp.element.createElement(
@@ -48,15 +57,44 @@
 					"Edit Infographic"
 				);
 
-				const content =
-					props.attributes.imageUrl &&
-					wp.element.createElement("img", {
-						src: props.attributes.imageUrl + "?t=" + new Date().getTime(),
-						alt: "Infographic",
-						style: { maxWidth: "100%" },
-					});
+				const buttonContainer = wp.element.createElement(
+					"div",
+					{
+						className: "components-toolbar",
+					},
+					editButton
+				);
 
-				const blockControls = wp.element.createElement(BlockControls, null, editButton);
+				const content =
+					imageUrl &&
+					wp.element.createElement(
+						ResizableBox,
+						{
+							size: { width: width, height: aspectRatio ? width / aspectRatio : "auto" },
+							minWidth: 100,
+							lockAspectRatio: true,
+							enable: { right: true },
+							onResizeStop: (event, direction, ref) => {
+								const newWidth = parseInt(ref.style.width, 10);
+								props.setAttributes({ width: newWidth });
+							},
+							className: "custom-resizable-box",
+						},
+						wp.element.createElement("img", {
+							src: imageUrl + "?t=" + new Date().getTime(),
+							alt: "Infographic",
+							style: { width: "100%", height: "auto" },
+							onLoad: (e) => {
+								const img = e.target;
+								if (!props.attributes.aspectRatio) {
+									const naturalAspectRatio = img.naturalWidth / img.naturalHeight;
+									props.setAttributes({ aspectRatio: naturalAspectRatio });
+								}
+							},
+						})
+					);
+
+				const blockControls = wp.element.createElement(BlockControls, null, buttonContainer);
 
 				return wp.element.createElement(wp.element.Fragment, null, blockControls, content);
 			},

@@ -1,5 +1,13 @@
 /*
- * Plugin Name: Infographic Generator by MakeMyBrand.AI
+ * Plugin Name: MakeMyBrand
+ * Plugin URI: https://makemybrand.ai/
+ * Description: Adds an infographic to new posts
+ * Version: 1.03
+ * Author: Make My Brand
+ * Author URI: https://makemybrand.ai
+ * License: GPLv2
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ *
  * Copyright (C) 2024 MakeMyBrand.AI
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,11 +26,11 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import MakemybrandInfographic from "./MakemybrandInfographic"; // Import your React component
+import MetaBox from "./MetaBox";
 
 document.addEventListener("DOMContentLoaded", () => {
-	const rootElement = document.getElementById("my-react-root");
+	const rootElement = document.getElementById("metabox-react-root");
 	if (rootElement) {
-		ReactDOM.render(<MakemybrandInfographic />, rootElement);
+		ReactDOM.render(<MetaBox />, rootElement);
 	}
 });

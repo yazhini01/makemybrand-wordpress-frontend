@@ -1,5 +1,13 @@
 /*
- * Plugin Name: Infographic Generator by MakeMyBrand.AI
+ * Plugin Name: MakeMyBrand
+ * Plugin URI: https://makemybrand.ai/
+ * Description: Adds an infographic to new posts
+ * Version: 1.03
+ * Author: Make My Brand
+ * Author URI: https://makemybrand.ai
+ * License: GPLv2
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ *
  * Copyright (C) 2024 MakeMyBrand.AI
  *
  * This program is free software: you can redistribute it and/or modify
@@ -69,7 +77,7 @@ const PaymentButton = ({ userInfo }) => {
 										padding: 20,
 										cursor: "pointer",
 									}}
-									onClick={() => window.open(option.link, "_blank")}
+									onClick={() => window.open(option.link + "?checkout[email]=" + userInfo.email, "_blank")}
 								>
 									<div
 										style={{
