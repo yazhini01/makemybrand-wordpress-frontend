@@ -26,15 +26,17 @@
 
 import { useState, useEffect } from "react";
 import { __ } from "@wordpress/i18n";
-import { Button, Modal, Spinner } from "@wordpress/components";
+import { Button, Modal } from "@wordpress/components";
 import apiFetch from "@wordpress/api-fetch";
 import PaymentButton from "./PaymentButton";
+import { TemplatesDialog } from "./TemplatesDialog";
+import { LoginDialog } from "./LoginDialog";
 
-const templateWidth = 180;
 const MetaBox = () => {
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState("");
-	const [showDialog, setShowDialog] = useState(false);
+	const [showTemplatesDialog, setShowTemplatesDialog] = useState(false);
+	const [showLoginDialog, setShowLoginDialog] = useState(false);
 	const [templates, setTemplates] = useState([]);
 	const post_id = makemybrand.post_id;
 	const [userInfo, setUserInfo] = useState(null);
@@ -45,12 +47,13 @@ const MetaBox = () => {
 	}, []);
 
 	useEffect(() => {
-		if (showDialog) {
+		if (showTemplatesDialog) {
 			fetchTemplates();
 		}
-	}, [showDialog]);
+	}, [showTemplatesDialog]);
 
 	const fetchUserInfo = async () => {
+		console.log("fetchUserInfo");
 		const formData = new URLSearchParams();
 		formData.append("action", "makemybrand_fetch_userinfo");
 		formData.append("_ajax_nonce", makemybrand.fetch_userinfo_nonce);
@@ -61,7 +64,6 @@ const MetaBox = () => {
 		})
 			.then((response) => {
 				if (response.success) {
-					console.log("User info", response.data);
 					setUserInfo(response.data);
 				} else {
 					console.error("Error fetching user info", response.data);
@@ -69,11 +71,6 @@ const MetaBox = () => {
 				}
 			})
 			.catch((e) => {
-				if (e.message === "USER_TOKEN_NOT_FOUND") {
-					console.log("User not logged in");
-					setUserInfo(null);
-					return;
-				}
 				console.error("Error fetching user info", e);
 				setUserInfo(null);
 			});
@@ -112,9 +109,11 @@ const MetaBox = () => {
 					if (updatedBlock) {
 						wp.data.dispatch("core/editor").editPost({ content: updatedBlock });
 					}
-					setShowDialog(false);
+					setShowTemplatesDialog(false);
 				} else {
-					setMessage(__("Error: ", "text-domain") + response.data);
+					console.log("Error", response.data);
+					const e = response.data?.error || response.data?.message || __("An error occurred. Please try again.", "text-domain");
+					setMessage(e);
 				}
 			})
 			.catch((e) => {
@@ -144,13 +143,20 @@ const MetaBox = () => {
 
 			{message && <p>{message}</p>}
 
-			{showDialog && (
+			{showTemplatesDialog && (
 				<TemplatesDialog
-					setShowDialog={setShowDialog}
+					setShowTemplatesDialog={setShowTemplatesDialog}
 					templates={templates}
 					templateLoading={templateLoading}
 					handleAddInfographic={handleAddInfographic}
 					loading={loading}
+				/>
+			)}
+
+			{showLoginDialog && (
+				<LoginDialog
+					setShowLoginDialog={setShowLoginDialog}
+					setUserInfo={setUserInfo}
 				/>
 			)}
 		</div>
@@ -160,7 +166,7 @@ const MetaBox = () => {
 		return (
 			<Button
 				isPrimary
-				onClick={() => setShowDialog(true)}
+				onClick={() => setShowTemplatesDialog(true)}
 				disabled={loading}
 			>
 				{loading ? __("Loading...", "text-domain") : __("Add Infographic", "text-domain")}
@@ -172,7 +178,8 @@ const MetaBox = () => {
 			<Button
 				isPrimary
 				onClick={() => {
-					window.open("https://app.makemybrand.ai/login?redirect=wordpress-token", "_blank");
+					setShowLoginDialog(true);
+					// window.open("https://app.makemybrand.ai/login?redirect=wordpress-token", "_blank");
 				}}
 				disabled={loading}
 			>
@@ -181,82 +188,5 @@ const MetaBox = () => {
 		);
 	}
 };
-
-function TemplatesDialog({ setShowDialog, templates, templateLoading, handleAddInfographic, loading }) {
-	const [selectedTemplate, setSelectedTemplate] = useState(null);
-
-	return (
-		<Modal
-			title={__("Select a Template", "text-domain")}
-			onRequestClose={() => setShowDialog(false)}
-			className="custom-modal"
-			style={{
-				overflow: "hidden",
-			}}
-		>
-			{templateLoading ? (
-				<div style={{ display: "flex", justifyContent: "center", padding: "20px" }}>
-					<Spinner />
-				</div>
-			) : (
-				<div style={{ display: "flex", flexWrap: "wrap", maxHeight: "380px", overflowY: "auto" }}>
-					{templates.map((template) => (
-						<div
-							key={template.id}
-							onClick={() => setSelectedTemplate(template)}
-							style={{
-								margin: "10px",
-								padding: "5px",
-								border: selectedTemplate?.id === template.id ? "2px solid blue" : "2px solid transparent",
-								cursor: "pointer",
-								transition: "border-color 0.2s",
-							}}
-							onMouseEnter={(e) => (e.currentTarget.style.borderColor = "blue")}
-							onMouseLeave={(e) => (e.currentTarget.style.borderColor = selectedTemplate?.id === template.id ? "blue" : "transparent")}
-						>
-							<div
-								style={{
-									width: templateWidth,
-									height: (templateWidth * template.height) / template.width, // Maintain aspect ratio
-									position: "relative",
-									overflow: "hidden",
-									borderRadius: "5px",
-									backgroundColor: "#f0f0f0", // Placeholder color
-								}}
-							>
-								<img
-									src={`https://movingvectors.s3.amazonaws.com/template-previews/${template.id}`}
-									alt={template.id}
-									loading="lazy"
-									style={{
-										width: templateWidth,
-										height: (templateWidth * template.height) / template.width, // Maintain aspect ratio
-										position: "absolute",
-										top: "50%",
-										left: "50%",
-										transform: "translate(-50%, -50%)",
-										borderRadius: "5px",
-									}}
-								/>
-							</div>
-						</div>
-					))}
-				</div>
-			)}
-			<Button
-				isPrimary
-				onClick={handleAddInfographic}
-				disabled={loading || !selectedTemplate}
-				style={{
-					marginTop: 10,
-					width: "100%",
-					justifyContent: "center",
-				}}
-			>
-				{loading ? __("Loading...", "text-domain") : __("Add Selected Template", "text-domain")}
-			</Button>
-		</Modal>
-	);
-}
 
 export default MetaBox;
